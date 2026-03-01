@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exama — Rich Text Editor</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet" />
+
+  <!-- TipTap via CDN (via esm.sh) -->
+  <script type="importmap">
+  {
+    "imports": {
+      "@tiptap/core": "https://esm.sh/@tiptap/core@2.4.0",
+      "@tiptap/pm/state": "https://esm.sh/@tiptap/pm@2.4.0/state",
+      "@tiptap/pm/view": "https://esm.sh/@tiptap/pm@2.4.0/view",
+      "@tiptap/pm/model": "https://esm.sh/@tiptap/pm@2.4.0/model",
+      "@tiptap/pm/transform": "https://esm.sh/@tiptap/pm@2.4.0/transform",
+      "@tiptap/extension-document": "https://esm.sh/@tiptap/extension-document@2.4.0",
+      "@tiptap/extension-paragraph": "https://esm.sh/@tiptap/extension-paragraph@2.4.0",
+      "@tiptap/extension-text": "https://esm.sh/@tiptap/extension-text@2.4.0",
+      "@tiptap/extension-bold": "https://esm.sh/@tiptap/extension-bold@2.4.0",
+      "@tiptap/extension-italic": "https://esm.sh/@tiptap/extension-italic@2.4.0",
+      "@tiptap/extension-underline": "https://esm.sh/@tiptap/extension-underline@2.4.0",
+      "@tiptap/extension-strike": "https://esm.sh/@tiptap/extension-strike@2.4.0",
+      "@tiptap/extension-heading": "https://esm.sh/@tiptap/extension-heading@2.4.0",
+      "@tiptap/extension-bullet-list": "https://esm.sh/@tiptap/extension-bullet-list@2.4.0",
+      "@tiptap/extension-ordered-list": "https://esm.sh/@tiptap/extension-ordered-list@2.4.0",
+      "@tiptap/extension-list-item": "https://esm.sh/@tiptap/extension-list-item@2.4.0",
+      "@tiptap/extension-blockquote": "https://esm.sh/@tiptap/extension-blockquote@2.4.0",
+      "@tiptap/extension-code": "https://esm.sh/@tiptap/extension-code@2.4.0",
+      "@tiptap/extension-code-block": "https://esm.sh/@tiptap/extension-code-block@2.4.0",
+      "@tiptap/extension-horizontal-rule": "https://esm.sh/@tiptap/extension-horizontal-rule@2.4.0",
+      "@tiptap/extension-history": "https://esm.sh/@tiptap/extension-history@2.4.0",
+      "@tiptap/extension-link": "https://esm.sh/@tiptap/extension-link@2.4.0",
+      "@tiptap/extension-placeholder": "https://esm.sh/@tiptap/extension-placeholder@2.4.0",
+      "@tiptap/extension-character-count": "https://esm.sh/@tiptap/extension-character-count@2.4.0",
+      "@tiptap/extension-text-align": "https://esm.sh/@tiptap/extension-text-align@2.4.0",
+      "@tiptap/extension-subscript": "https://esm.sh/@tiptap/extension-subscript@2.4.0",
+      "@tiptap/extension-superscript": "https://esm.sh/@tiptap/extension-superscript@2.4.0",
+      "@tiptap/extension-highlight": "https://esm.sh/@tiptap/extension-highlight@2.4.0"
+    }
+  }
+  </script>
+
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────────── */
+    :root {
+      /* Paper */
+      --color-paper-50:  #faf9f6;
+      --color-paper-100: #f4f2ec;
+      --color-paper-200: #e8e4d9;
+      --color-paper-300: #d6d0c4;
+
+      /* Ink */
+      --color-ink-100: #e0ddd7;
+      --color-ink-200: #b8b3a8;
+      --color-ink-300: #8c8679;
+      --color-ink-400: #5e5a52;
+      --color-ink-500: #3a3731;
+      --color-ink-600: #27251f;
+      --color-ink-700: #1a1814;
+
+      /* Accent */
+      --color-accent-50:  #f0f4f8;
+      --color-accent-100: #d9e5f0;
+      --color-accent-200: #adc5df;
+      --color-accent-300: #7aa3c8;
+      --color-accent-400: #4e84b4;
+      --color-accent-500: #2d6899;
+      --color-accent-600: #1f5280;
+      --color-accent-700: #153d60;
+
+      /* Semantic */
+      --color-success-50:  #f0f7f0;
+      --color-success-300: #5fa85f;
+      --color-success-500: #256825;
+      --color-warning-50:  #fdf8ed;
+      --color-warning-300: #d9a93a;
+      --color-danger-50:   #fdf0f0;
+      --color-danger-300:  #d05f5f;
+      --color-danger-500:  #8a2020;
+
+      /* Shadows */
+      --shadow-paper:    0 1px 3px 0 rgba(58,55,49,.08), 0 1px 2px -1px rgba(58,55,49,.06);
+      --shadow-paper-md: 0 3px 8px 0 rgba(58,55,49,.10), 0 1px 3px -1px rgba(58,55,49,.08);
+      --shadow-paper-lg: 0 8px 20px 0 rgba(58,55,49,.12), 0 2px 6px -1px rgba(58,55,49,.08);
+      --shadow-focus:    0 0 0 3px rgba(77,132,180,.14);
+
+      /* Radius */
+      --radius-sm:   4px;
+      --radius-base: 6px;
+      --radius-md:   8px;
+      --radius-lg:   12px;
+      --radius-full: 9999px;
+
+      /* Type */
+      --font-serif: 'Noto Serif', Georgia, serif;
+      --font-sans:  'DM Sans', system-ui, sans-serif;
+      --font-mono:  ui-monospace, 'Cascadia Code', monospace;
+
+      /* Spacing */
+      --space-1:  4px;
+      --space-2:  8px;
+      --space-3:  12px;
+      --space-4:  16px;
+      --space-5:  20px;
+      --space-6:  24px;
+      --space-8:  32px;
+      --space-10: 40px;
+    }
+
+    /* ─── Base Reset ────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--color-paper-50);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      font-family: var(--font-sans);
+      color: var(--color-ink-500);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ─── App Shell ─────────────────────────────────────────── */
+    .app {
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ─── Card (Editor Card) — full screen ──────────────────── */
+    .editor-card {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    /* ─── Toolbar ───────────────────────────────────────────── */
+    .toolbar {
+      background: var(--color-paper-50);
+      border-bottom: 1px solid var(--color-paper-200);
+      padding: var(--space-2) var(--space-3);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-1);
+      flex-shrink: 0;
+    }
+
+    .toolbar::-webkit-scrollbar { display: none; }
+
+    .toolbar-sep {
+      width: 1px;
+      height: 20px;
+      background: var(--color-paper-300);
+      margin: 0 var(--space-1);
+      flex-shrink: 0;
+    }
+
+    .tb-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--color-ink-400);
+      cursor: pointer;
+      transition: background 120ms, color 120ms;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      position: relative;
+    }
+
+    .tb-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 1.75;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      pointer-events: none;
+    }
+
+    .tb-btn:hover {
+      background: var(--color-paper-100);
+      color: var(--color-ink-600);
+    }
+
+    .tb-btn.active {
+      background: var(--color-accent-100);
+      color: var(--color-accent-600);
+    }
+
+    .tb-btn:focus-visible {
+      outline: none;
+      box-shadow: var(--shadow-focus);
+    }
+
+    .tb-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Dropdown select in toolbar */
+    .tb-select {
+      height: 32px;
+      padding: 0 var(--space-2);
+      border: 1px solid var(--color-paper-300);
+      border-radius: var(--radius-sm);
+      background: #fff;
+      color: var(--color-ink-500);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 120ms;
+    }
+
+    .tb-select:focus {
+      border-color: var(--color-accent-400);
+      box-shadow: var(--shadow-focus);
+    }
+
+    /* ─── Tooltip on toolbar buttons ─────────────────────────── */
+    .tb-btn::after {
+      content: attr(title);
+      position: absolute;
+      bottom: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-ink-600);
+      color: var(--color-paper-50);
+      font-size: 11px;
+      font-family: var(--font-sans);
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 120ms 200ms;
+      z-index: 999;
+    }
+
+    .tb-btn:hover::after { opacity: 1; }
+
+    @media (max-width: 600px) {
+      .tb-btn::after { display: none; }
+    }
+
+    /* ─── Floating Link Input ────────────────────────────────── */
+    .link-bar {
+      display: none;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: var(--color-accent-50);
+      border-bottom: 1px solid var(--color-accent-200);
+    }
+
+    .link-bar.open { display: flex; }
+
+    .link-bar label {
+      font-size: 12px;
+      color: var(--color-accent-600);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .link-bar input {
+      flex: 1;
+      height: 30px;
+      padding: 0 var(--space-3);
+      border: 1px solid var(--color-accent-200);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      background: #fff;
+      color: var(--color-ink-500);
+      outline: none;
+    }
+
+    .link-bar input:focus {
+      border-color: var(--color-accent-400);
+      box-shadow: var(--shadow-focus);
+    }
+
+    .link-bar-actions {
+      display: flex;
+      gap: var(--space-1);
+    }
+
+    /* ─── Editor Content ─────────────────────────────────────── */
+    .editor-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-8) clamp(var(--space-6), 8vw, 120px);
+    }
+
+    @media (max-width: 600px) {
+      .editor-content {
+        padding: var(--space-5) var(--space-4);
+      }
+    }
+
+    /* ProseMirror base */
+    .ProseMirror {
+      outline: none;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--color-ink-500);
+      caret-color: var(--color-accent-500);
+    }
+
+    .ProseMirror > * + * { margin-top: .85em; }
+
+    /* Headings */
+    .ProseMirror h1 {
+      font-family: var(--font-serif);
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--color-ink-700);
+      line-height: 1.25;
+      margin-top: 1.4em;
+    }
+
+    .ProseMirror h2 {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--color-ink-600);
+      line-height: 1.3;
+      margin-top: 1.3em;
+    }
+
+    .ProseMirror h3 {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--color-ink-600);
+      line-height: 1.4;
+      margin-top: 1.2em;
+    }
+
+    .ProseMirror h4 {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-ink-600);
+      margin-top: 1.2em;
+    }
+
+    /* Lists */
+    .ProseMirror ul,
+    .ProseMirror ol {
+      padding-left: 1.5em;
+    }
+
+    .ProseMirror li { margin-top: .3em; }
+    .ProseMirror li p { margin: 0; }
+
+    /* Blockquote */
+    .ProseMirror blockquote {
+      border-left: 3px solid var(--color-accent-500);
+      padding: var(--space-3) var(--space-4);
+      background: var(--color-accent-50);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      color: var(--color-ink-400);
+      font-style: italic;
+    }
+
+    /* Code inline */
+    .ProseMirror code {
+      font-family: var(--font-mono);
+      font-size: .875em;
+      background: var(--color-paper-100);
+      border: 1px solid var(--color-paper-200);
+      border-radius: var(--radius-sm);
+      padding: .1em .35em;
+      color: var(--color-ink-600);
+    }
+
+    /* Code block */
+    .ProseMirror pre {
+      background: var(--color-ink-700);
+      border-radius: var(--radius-md);
+      padding: var(--space-4) var(--space-5);
+      overflow-x: auto;
+    }
+
+    .ProseMirror pre code {
+      background: none;
+      border: none;
+      color: var(--color-paper-100);
+      font-size: 13px;
+      padding: 0;
+      border-radius: 0;
+    }
+
+    /* HR */
+    .ProseMirror hr {
+      border: none;
+      border-top: 1px solid var(--color-paper-300);
+      margin: var(--space-6) 0;
+    }
+
+    /* Links */
+    .ProseMirror a {
+      color: var(--color-accent-500);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .ProseMirror a:hover { color: var(--color-accent-600); }
+
+    /* Highlight */
+    .ProseMirror mark {
+      background: #fef4c7;
+      border-radius: 2px;
+      padding: .05em .1em;
+    }
+
+    /* Sub / Sup */
+    .ProseMirror sub { vertical-align: sub; font-size: .75em; }
+    .ProseMirror sup { vertical-align: super; font-size: .75em; }
+
+    /* Text align */
+    .ProseMirror [style*="text-align: center"] { text-align: center; }
+    .ProseMirror [style*="text-align: right"]  { text-align: right; }
+    .ProseMirror [style*="text-align: justify"]{ text-align: justify; }
+
+    /* Placeholder */
+    .ProseMirror p.is-editor-empty:first-child::before {
+      content: attr(data-placeholder);
+      color: var(--color-ink-200);
+      pointer-events: none;
+      float: left;
+      height: 0;
+    }
+
+    /* Selection */
+    .ProseMirror ::selection { background: var(--color-accent-100); }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    .editor-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      border-top: 1px solid var(--color-paper-200);
+      background: var(--color-paper-50);
+    }
+
+    .char-count {
+      font-size: 12px;
+      color: var(--color-ink-300);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .char-count span {
+      color: var(--color-ink-400);
+      font-weight: 500;
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    /* ─── Buttons ────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      height: 36px;
+      padding: 0 var(--space-4);
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--radius-base);
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background 120ms, border-color 120ms, box-shadow 120ms;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+    .btn-secondary {
+      background: var(--color-paper-100);
+      color: var(--color-ink-500);
+      border-color: var(--color-paper-300);
+    }
+
+    .btn-secondary:hover {
+      background: var(--color-paper-200);
+    }
+
+    .btn-primary {
+      background: var(--color-accent-500);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent-600);
+    }
+
+    .btn svg {
+      width: 15px;
+      height: 15px;
+      stroke: currentColor;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* ─── Alert Toast ────────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      bottom: var(--space-6);
+      left: 50%;
+      transform: translateX(-50%) translateY(12px);
+      background: var(--color-ink-700);
+      color: var(--color-paper-50);
+      padding: var(--space-2) var(--space-5);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms, transform 200ms;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 600px) {
+      .tb-btn::after { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <div class="editor-card">
+
+        <!-- Toolbar -->
+        <div class="toolbar" role="toolbar" aria-label="Định dạng văn bản">
+
+          <!-- History -->
+          <button class="tb-btn" id="tb-undo" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác" type="button">
+            <svg viewBox="0 0 24 24"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-redo" title="Làm lại (Ctrl+Shift+Z)" aria-label="Làm lại" type="button">
+            <svg viewBox="0 0 24 24"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg>
+          </button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Heading select -->
+          <select class="tb-select" id="tb-heading" aria-label="Kiểu tiêu đề">
+            <option value="p">Đoạn văn</option>
+            <option value="h1">Tiêu đề 1</option>
+            <option value="h2">Tiêu đề 2</option>
+            <option value="h3">Tiêu đề 3</option>
+            <option value="h4">Tiêu đề 4</option>
+          </select>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Inline marks -->
+          <button class="tb-btn" id="tb-bold"   title="Đậm (Ctrl+B)"    aria-label="Đậm"    type="button">
+            <svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-italic"    title="Nghiêng (Ctrl+I)"   aria-label="Nghiêng"    type="button">
+            <svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-underline" title="Gạch chân (Ctrl+U)"  aria-label="Gạch chân" type="button">
+            <svg viewBox="0 0 24 24"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-strike"    title="Gạch ngang"          aria-label="Gạch ngang" type="button">
+            <svg viewBox="0 0 24 24"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 20H7a3 3 0 0 1-2.83-4"/><line x1="4" y1="12" x2="20" y2="12"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-highlight" title="Tô sáng"             aria-label="Tô sáng"    type="button">
+            <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          </button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Script -->
+          <button class="tb-btn" id="tb-sub" title="Chỉ số dưới" aria-label="Chỉ số dưới" type="button">
+            <svg viewBox="0 0 24 24"><path d="M4 5l8 8"/><path d="M12 5l-8 8"/><path d="M20 19h-4c0-1.5.44-2 1.5-2.5S20 15.33 20 14.17 19.1 13 18 13s-1.75.8-1.75.8"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-sup" title="Chỉ số trên" aria-label="Chỉ số trên" type="button">
+            <svg viewBox="0 0 24 24"><path d="M4 19l8-8"/><path d="M12 19l-8-8"/><path d="M20 12h-4c0-1.5.44-2 1.5-2.5S20 8.33 20 7.17 19.1 6 18 6s-1.75.8-1.75.8"/></svg>
+          </button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Align -->
+          <button class="tb-btn" id="tb-align-left"    title="Căn trái"   aria-label="Căn trái"   type="button">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-align-center"  title="Căn giữa"   aria-label="Căn giữa"   type="button">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6"  x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-align-right"   title="Căn phải"   aria-label="Căn phải"   type="button">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6"  x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-align-justify" title="Căn đều"    aria-label="Căn đều"    type="button">
+            <svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Lists -->
+          <button class="tb-btn" id="tb-bullet" title="Danh sách dấu chấm" aria-label="Danh sách" type="button">
+            <svg viewBox="0 0 24 24"><line x1="9" y1="6"  x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="5" cy="6"  r="1" fill="currentColor" stroke="none"/><circle cx="5" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="5" cy="18" r="1" fill="currentColor" stroke="none"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-ordered" title="Danh sách số" aria-label="Danh sách số" type="button">
+            <svg viewBox="0 0 24 24"><line x1="10" y1="6"  x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4"/><path d="M4 10h2"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+          </button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Block -->
+          <button class="tb-btn" id="tb-blockquote" title="Trích dẫn"   aria-label="Trích dẫn"   type="button">
+            <svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-code"       title="Code nội dòng" aria-label="Code inline"  type="button">
+            <svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-codeblock"  title="Khối code"    aria-label="Khối code"    type="button">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-hr" title="Đường kẻ ngang" aria-label="Đường kẻ ngang" type="button">
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><line x1="5" y1="7" x2="19" y2="7" stroke-dasharray="2 2"/><line x1="5" y1="17" x2="19" y2="17" stroke-dasharray="2 2"/></svg>
+          </button>
+
+          <div class="toolbar-sep"></div>
+
+          <!-- Link -->
+          <button class="tb-btn" id="tb-link" title="Chèn liên kết (Ctrl+K)" aria-label="Liên kết" type="button">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          </button>
+          <button class="tb-btn" id="tb-unlink" title="Xóa liên kết" aria-label="Xóa liên kết" type="button">
+            <svg viewBox="0 0 24 24"><path d="M18.84 12.25l1.72-1.71h-.02a5.004 5.004 0 0 0-.12-7.07 5.006 5.006 0 0 0-6.95 0l-1.72 1.71"/><path d="M5.17 11.75l-1.71 1.71a5.004 5.004 0 0 0 .12 7.07A5.006 5.006 0 0 0 10.43 20l1.71-1.71"/><line x1="8" y1="2" x2="8" y2="5"/><line x1="2" y1="8" x2="5" y2="8"/><line x1="16" y1="19" x2="16" y2="22"/><line x1="19" y1="16" x2="22" y2="16"/></svg>
+          </button>
+
+        </div>
+        <!-- /Toolbar -->
+
+        <!-- Link bar (inline, appears below toolbar) -->
+        <div class="link-bar" id="link-bar" aria-label="Nhập liên kết">
+          <label for="link-input">URL</label>
+          <input type="url" id="link-input" placeholder="https://example.com" />
+          <div class="link-bar-actions">
+            <button class="btn btn-primary"    id="link-apply"  type="button" style="height:30px;padding:0 12px;font-size:13px">Áp dụng</button>
+            <button class="btn btn-secondary"  id="link-cancel" type="button" style="height:30px;padding:0 10px;font-size:13px">Hủy</button>
+          </div>
+        </div>
+
+        <!-- TipTap mount -->
+        <div class="editor-content" id="editor" role="textbox" aria-multiline="true" aria-label="Nội dung"></div>
+
+        <!-- Footer -->
+        <div class="editor-footer">
+          <div class="char-count" id="char-count" role="status" aria-live="polite">
+            <span id="cc-chars">0</span> ký tự · <span id="cc-words">0</span> từ
+          </div>
+          <div class="footer-actions">
+            <button class="btn btn-secondary" id="btn-clear" type="button">
+              <svg viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+              Làm mới
+            </button>
+            <button class="btn btn-secondary" id="btn-export" type="button">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Xuất HTML
+            </button>
+            <button class="btn btn-primary" id="btn-save" type="button">
+              <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+              Lưu
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <!-- /Card -->
+
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { Editor } from '@tiptap/core';
+import Document        from '@tiptap/extension-document';
+import Paragraph       from '@tiptap/extension-paragraph';
+import Text            from '@tiptap/extension-text';
+import Bold            from '@tiptap/extension-bold';
+import Italic          from '@tiptap/extension-italic';
+import Underline       from '@tiptap/extension-underline';
+import Strike          from '@tiptap/extension-strike';
+import Heading         from '@tiptap/extension-heading';
+import BulletList      from '@tiptap/extension-bullet-list';
+import OrderedList     from '@tiptap/extension-ordered-list';
+import ListItem        from '@tiptap/extension-list-item';
+import Blockquote      from '@tiptap/extension-blockquote';
+import Code            from '@tiptap/extension-code';
+import CodeBlock       from '@tiptap/extension-code-block';
+import HorizontalRule  from '@tiptap/extension-horizontal-rule';
+import History         from '@tiptap/extension-history';
+import Link            from '@tiptap/extension-link';
+import Placeholder     from '@tiptap/extension-placeholder';
+import CharacterCount  from '@tiptap/extension-character-count';
+import TextAlign       from '@tiptap/extension-text-align';
+import Subscript       from '@tiptap/extension-subscript';
+import Superscript     from '@tiptap/extension-superscript';
+import Highlight       from '@tiptap/extension-highlight';
+
+// ─── Editor Init ──────────────────────────────────────────
+const editor = new Editor({
+  element: document.getElementById('editor'),
+  extensions: [
+    Document,
+    Paragraph,
+    Text,
+    Bold,
+    Italic,
+    Underline,
+    Strike,
+    Heading.configure({ levels: [1, 2, 3, 4] }),
+    BulletList,
+    OrderedList,
+    ListItem,
+    Blockquote,
+    Code,
+    CodeBlock,
+    HorizontalRule,
+    History,
+    Link.configure({ openOnClick: false, autolink: true }),
+    Placeholder.configure({ placeholder: 'Nhập nội dung câu hỏi, mô tả, hoặc hướng dẫn…' }),
+    CharacterCount,
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    Subscript,
+    Superscript,
+    Highlight,
+  ],
+  content: `<h2>Giới thiệu về Exama Editor</h2>
+<p>Đây là trình soạn thảo văn bản phong phú được xây dựng trên <strong>TipTap</strong>, tuân thủ <em>Exama Design System</em>. Bạn có thể sử dụng editor này để soạn nội dung câu hỏi, đề thi, hoặc tài liệu giảng dạy.</p>
+<h3>Tính năng nổi bật</h3>
+<ul>
+  <li>Định dạng đầy đủ: đậm, nghiêng, gạch chân, gạch ngang, tô sáng</li>
+  <li>Tiêu đề từ H1 đến H4 với font Noto Serif</li>
+  <li>Danh sách dấu chấm và danh sách số</li>
+  <li>Trích dẫn và khối code</li>
+  <li>Chỉ số trên và chỉ số dưới cho ký hiệu toán học</li>
+  <li>Chèn liên kết và căn chỉnh văn bản</li>
+</ul>
+<blockquote>Giao diện được thiết kế theo phong cách "tờ giấy trắng" — sạch, trung lập và không gây xao nhãng trong quá trình thi cử.</blockquote>`,
+
+  onUpdate({ editor }) {
+    updateCharCount(editor);
+    updateToolbarState(editor);
+  },
+  onSelectionUpdate({ editor }) {
+    updateToolbarState(editor);
+  },
+  onTransaction({ editor }) {
+    updateToolbarState(editor);
+  },
+});
+
+// ─── Char/Word Count ──────────────────────────────────────
+function updateCharCount(ed) {
+  const chars = ed.storage.characterCount.characters();
+  const rawText = ed.getText();
+  const words = rawText.trim() === '' ? 0 : rawText.trim().split(/\s+/).length;
+  document.getElementById('cc-chars').textContent = chars;
+  document.getElementById('cc-words').textContent = words;
+}
+
+// ─── Toolbar Active State ─────────────────────────────────
+const activeMap = {
+  'tb-bold':          () => editor.isActive('bold'),
+  'tb-italic':        () => editor.isActive('italic'),
+  'tb-underline':     () => editor.isActive('underline'),
+  'tb-strike':        () => editor.isActive('strike'),
+  'tb-highlight':     () => editor.isActive('highlight'),
+  'tb-sub':           () => editor.isActive('subscript'),
+  'tb-sup':           () => editor.isActive('superscript'),
+  'tb-bullet':        () => editor.isActive('bulletList'),
+  'tb-ordered':       () => editor.isActive('orderedList'),
+  'tb-blockquote':    () => editor.isActive('blockquote'),
+  'tb-code':          () => editor.isActive('code'),
+  'tb-codeblock':     () => editor.isActive('codeBlock'),
+  'tb-link':          () => editor.isActive('link'),
+  'tb-align-left':    () => editor.isActive({ textAlign: 'left' }),
+  'tb-align-center':  () => editor.isActive({ textAlign: 'center' }),
+  'tb-align-right':   () => editor.isActive({ textAlign: 'right' }),
+  'tb-align-justify': () => editor.isActive({ textAlign: 'justify' }),
+};
+
+function updateToolbarState(ed) {
+  Object.entries(activeMap).forEach(([id, fn]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', fn());
+  });
+
+  // Heading select
+  const headingSel = document.getElementById('tb-heading');
+  for (let i = 1; i <= 4; i++) {
+    if (ed.isActive('heading', { level: i })) {
+      headingSel.value = `h${i}`;
+      return;
+    }
+  }
+  headingSel.value = 'p';
+
+  // Undo/redo
+  document.getElementById('tb-undo').disabled = !ed.can().undo();
+  document.getElementById('tb-redo').disabled = !ed.can().redo();
+}
+
+// ─── Toolbar Click Handlers ───────────────────────────────
+const handlers = {
+  'tb-undo':          () => editor.chain().focus().undo().run(),
+  'tb-redo':          () => editor.chain().focus().redo().run(),
+  'tb-bold':          () => editor.chain().focus().toggleBold().run(),
+  'tb-italic':        () => editor.chain().focus().toggleItalic().run(),
+  'tb-underline':     () => editor.chain().focus().toggleUnderline().run(),
+  'tb-strike':        () => editor.chain().focus().toggleStrike().run(),
+  'tb-highlight':     () => editor.chain().focus().toggleHighlight().run(),
+  'tb-sub':           () => editor.chain().focus().toggleSubscript().run(),
+  'tb-sup':           () => editor.chain().focus().toggleSuperscript().run(),
+  'tb-align-left':    () => editor.chain().focus().setTextAlign('left').run(),
+  'tb-align-center':  () => editor.chain().focus().setTextAlign('center').run(),
+  'tb-align-right':   () => editor.chain().focus().setTextAlign('right').run(),
+  'tb-align-justify': () => editor.chain().focus().setTextAlign('justify').run(),
+  'tb-bullet':        () => editor.chain().focus().toggleBulletList().run(),
+  'tb-ordered':       () => editor.chain().focus().toggleOrderedList().run(),
+  'tb-blockquote':    () => editor.chain().focus().toggleBlockquote().run(),
+  'tb-code':          () => editor.chain().focus().toggleCode().run(),
+  'tb-codeblock':     () => editor.chain().focus().toggleCodeBlock().run(),
+  'tb-hr':            () => editor.chain().focus().setHorizontalRule().run(),
+  'tb-unlink':        () => editor.chain().focus().unsetLink().run(),
+};
+
+Object.entries(handlers).forEach(([id, fn]) => {
+  document.getElementById(id)?.addEventListener('click', fn);
+});
+
+// Heading select
+document.getElementById('tb-heading').addEventListener('change', (e) => {
+  const v = e.target.value;
+  if (v === 'p') {
+    editor.chain().focus().setParagraph().run();
+  } else {
+    const level = parseInt(v.replace('h', ''));
+    editor.chain().focus().toggleHeading({ level }).run();
+  }
+});
+
+// ─── Link Bar ─────────────────────────────────────────────
+const linkBar    = document.getElementById('link-bar');
+const linkInput  = document.getElementById('link-input');
+const linkApply  = document.getElementById('link-apply');
+const linkCancel = document.getElementById('link-cancel');
+
+document.getElementById('tb-link').addEventListener('click', () => {
+  const prev = editor.getAttributes('link').href || '';
+  linkInput.value = prev;
+  linkBar.classList.toggle('open');
+  if (linkBar.classList.contains('open')) linkInput.focus();
+});
+
+linkApply.addEventListener('click', () => {
+  const url = linkInput.value.trim();
+  if (url) {
+    editor.chain().focus().setLink({ href: url }).run();
+    showToast('Đã chèn liên kết');
+  }
+  linkBar.classList.remove('open');
+});
+
+linkCancel.addEventListener('click', () => {
+  linkBar.classList.remove('open');
+  editor.commands.focus();
+});
+
+linkInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') linkApply.click();
+  if (e.key === 'Escape') linkCancel.click();
+});
+
+// ─── Clear Button ─────────────────────────────────────────
+document.getElementById('btn-clear').addEventListener('click', () => {
+  if (confirm('Xóa toàn bộ nội dung?')) {
+    editor.commands.clearContent(true);
+    editor.commands.focus();
+  }
+});
+
+// ─── Save Button ──────────────────────────────────────────
+document.getElementById('btn-save').addEventListener('click', () => {
+  showToast('Đã lưu nội dung');
+});
+
+// ─── Export HTML ──────────────────────────────────────────
+document.getElementById('btn-export').addEventListener('click', () => {
+  const html = editor.getHTML();
+  const blob = new Blob([html], { type: 'text/html' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'question.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Đã xuất file HTML');
+});
+
+// ─── Toast ────────────────────────────────────────────────
+let toastTimeout;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ─── Keyboard: Ctrl+K for link ────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    document.getElementById('tb-link').click();
+  }
+});
+
+// Initial state
+updateCharCount(editor);
+updateToolbarState(editor);
+</script>
+</body>
+</html>
